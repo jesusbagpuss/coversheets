@@ -38,13 +38,16 @@ sub generate
 
 	my $pages = $coversheet->get_pages || return;
 	$plugin->{_pages} = $pages;
- 
+
+	$doc->get_eprint->set_under_construction( 1 );
 	my $newcoverdoc = $plugin->convert( $doc->get_eprint, $doc, "application/pdf" );
+	$doc->get_eprint->set_under_construction( 0 );
+
 	unless( defined $newcoverdoc )
-        {
-                $session->get_repository->log( "[Event::AddCoversheet] Couldn't create coversheet document\n" );
-                return EPrints::Const::HTTP_NOT_FOUND;
-        }
+	{
+		$session->get_repository->log( "[Event::AddCoversheet] Couldn't create coversheet document\n" );
+		return EPrints::Const::HTTP_NOT_FOUND;
+	}
 
 	# add relation to new covered version
 	$newcoverdoc->add_relation( $doc, "isCoversheetVersionOf" );

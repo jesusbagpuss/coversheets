@@ -1,4 +1,20 @@
 
+### When document security is changed, and there is a covered version,
+# make sure the security matches too.
+$c->add_dataset_trigger( 'document', EPrints::Const::EP_TRIGGER_AFTER_COMMIT, sub
+{
+        my( %args ) = @_;
+        my( $repo, $doc, $changed ) = @args{qw( repository dataobj changed )};
+
+        my $coverdoc = EPrints::DataObj::Coversheet->get_coversheet_doc( $doc );
+	# NB $changed contains the old value of the field.
+        if( defined $coverdoc && $changed->{security} ){
+                $coverdoc->set_value( "security", $doc->get_value( "security" ) );
+                $coverdoc->commit;
+        }
+
+}, priority => 100 );
+
 $c->add_trigger( EP_TRIGGER_DOC_URL_REWRITE, sub
 {
 	my( %args ) = @_;
@@ -6,9 +22,26 @@ $c->add_trigger( EP_TRIGGER_DOC_URL_REWRITE, sub
 	my( $request, $doc, $relations, $filename ) = @args{qw( request document relations filename )};
 	return EP_TRIGGER_OK unless defined $doc;
 
+### Detect when the covered version being directly accessed
+        my $requested_coverdoc; # existing covered version
+        if( $doc->has_relation( undef, "isCoversheetVersionOf" ) )
+        {
+                $requested_coverdoc = $doc;
+                my @owning_docs = $doc->related_dataobjs( EPrints::Utils::make_relation( "isCoversheetVersionOf" ) );
+                if( scalar @owning_docs > 1 )
+                {
+                        $doc->{session}->log( "Coversheet trigger: multiple owning docs returned" );
+                }
+                $doc = $owning_docs[0];
+        }
+
+	if( $doc->exists_and_set( "has_legacy_coversheet" ) ){
+		return EP_TRIGGER_OK if $doc->value( "has_legacy_coversheet" ) eq "TRUE";
+	}
+
 	# check document is a pdf
 	my $format = $doc->value( "format" ); # back compatibility
-	my $mime_type = $doc->value( "mime_type" );
+	my $mime_type = $doc->value( "mime_type" ) || "";
 	return EP_TRIGGER_OK unless( $format eq "application/pdf" || $mime_type eq "application/pdf" || $filename =~ /\.pdf$/i );
 
 	# ignore thumbnails e.g. http://.../8381/1.haspreviewThumbnailVersion/jacqueline-lane.pdf
