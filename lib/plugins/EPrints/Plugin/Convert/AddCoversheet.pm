@@ -158,6 +158,27 @@ sub prepare_pages
 		}
 	}
 
+#JLRS METADATA
+#	$session->log( "JLRS: pdfmark metadata\n" );
+	if( $session->get_repository->can_call( 'coversheet','pdfmark' ) ){
+#		$session->log( "JLRS: pdfmark\n" );
+		my $pdfmark_text = $session->get_repository->call( [ 'coversheet', 'pdfmark' ], $eprint );
+		if( defined $pdfmark_text ){
+#			$session->log( "JLRS: pdfmark_text\n" );
+
+			if( open my $pdfmark_file, ">>", "$temp_dir/pdfmark" )
+		        {
+#				$session->log( "[Convert::AddCoversheet] Created 'pdfmark' file:\n" );
+#				$session->log( "$pdfmark_text\n" );
+				#print $pdfmark_file "[ /Title (".$eprint->get_value( "title" ).") /DOCINFO pdfmark\n";
+				print $pdfmark_file $pdfmark_text;
+				close $pdfmark_file;
+			} else {
+				$session->log( "[Convert::AddCoversheet] Failed to create 'pdfmark' file.\n" );
+			}
+		}
+	}
+
 	return $temp_dir;
 }
 
@@ -178,6 +199,9 @@ sub export
 
 	my $frontfile_path = $temp_dir . '/frontfile.pdf';
 	my $backfile_path = $temp_dir . '/backfile.pdf';
+
+	#JLRS
+	my $pdfmark_path = $temp_dir . '/pdfmark';
 
 	if ( ($pages->{frontfile}->{path} && ! -e $frontfile_path) || ($pages->{backfile}->{path} && ! -e $backfile_path) )
         {
@@ -207,6 +231,13 @@ sub export
 	push @input_files, $frontfile_path if( -e $frontfile_path );
 	push @input_files, $doc_path;
 	push @input_files, $backfile_path if( -e $backfile_path );
+	push @input_files, $pdfmark_path if( -e $pdfmark_path );
+
+#	if( -e $pdfmark_path ){
+#		$repository->log( "[Convert::AddCoversheet] Found pdfmark." );
+#	} else {
+#		$repository->log( "[Convert::AddCoversheet] NOT FOUND: pdfmark." );
+#	}
 
 	my $temp_output_dir = File::Temp->newdir( "ep-coversheet-finishedXXXX", TMPDIR => 1 );
 	my $temp_output_file = $temp_dir.'/temp.pdf';
