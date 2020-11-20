@@ -75,8 +75,18 @@ $c->add_trigger( EP_TRIGGER_DOC_URL_REWRITE, sub
 		$regenerate = $coversheet->needs_regeneration( $doc, $coverdoc );
 	}
 
+	# Detect if this is the covered version being directly accessed
+	if( defined $requested_coverdoc && defined $coverdoc && ( $requested_coverdoc->get_id != $coverdoc->get_id ) ){
+		$session->log( "[Coversheet] requested coverdoc and suggested coverdoc do not match. EPID: ".$eprint->get_id );
+		$session->log( "\tREQUESTED_DOCID: ".$requested_coverdoc->get_id."\tSUGGESTED_DOCID: ".$coverdoc->get_id );
+	}
+
 	if( $regenerate )
 	{
+# DEBUG
+#$session->log( sprintf( "Adding regenerate coversheet to queue. Docid: %s. EPid: %s. CSid: %s.\n", $doc->get_id, $eprint->get_id, $coversheet->get_id ) );
+#$session->log( sprintf( "EPrint mod time: %s.\n", $eprint->value( "lastmod" ) ) );
+
 		# add job to event queue
 		EPrints::DataObj::EventQueue->create_unique( $session, {
 			unique => "TRUE",

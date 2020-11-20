@@ -90,7 +90,7 @@ $c->{coversheet}->{tags} = {
 		my( undef, $doc ) = @_;
 		my $repo = $doc->repository;
 
-		if( $doc->exists_and_set( "license" ) ){
+		if( $doc->exists_and_set( "license" ) && $doc->value( "license" ) ne "unspecified" ){
 			my $phraseid = "licenses_coversheet_statement_".$doc->value( "license" );
 			if( $repo->get_lang->has_phrase( $phraseid, $repo ) ){
 				return $repo->phrase( $phraseid );

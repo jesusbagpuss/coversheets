@@ -660,6 +660,10 @@ sub needs_regeneration
 	# compare timestamps
 		
 	$coverfile = $coverdoc->local_path.'/'.$coverdoc->get_main if defined $coverdoc;
+
+# DEBUG
+#$self->{session}->log( "[DataObj::Coversheet::needs_regeneration] Coverfile: ". ( defined $coverfile ? $coverfile : "NONE" )."\n" );
+
 		
 	if( defined $coverdoc && defined $coverfile && -e $coverfile )
 	{
@@ -682,6 +686,8 @@ sub needs_regeneration
 		# so the eprintmod could be the same as covermod and it is still valid to use the existing coversheet
 		# otherwise we re-generate on every request
 		$regenerate = 0 if( ($eprintmod <= $covermod) && ($coversheetmod < $covermod) );
+# DEBUG
+#$self->{session}->log( "[DataObj::Coversheet::needs_regeneration] In loop.\n\t\$eprintmod = $eprintmod,\n\t\$covermod = $covermod,\n\t\$coversheetmod = $coversheetmod\n\$regenerate = $regenerate\n" );
 	}
 	return $regenerate;
 }

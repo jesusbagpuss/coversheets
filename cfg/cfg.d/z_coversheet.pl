@@ -27,7 +27,7 @@ $c->{coversheet}->{url} = $c->{base_url}.'/coversheets';
 $c->{gs_pdf_stich_cmd} = "gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=";
 
 # Fields used for applying coversheets
-$c->{license_application_fields} = [ "type" ];
+$c->{license_application_fields} = [ "type", "institution", "eprintid" ];
 
 #new permissions for coversheet toolkit
 $c->{roles}->{"coversheet-editor"} =

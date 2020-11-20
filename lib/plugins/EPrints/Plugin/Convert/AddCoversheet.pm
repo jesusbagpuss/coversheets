@@ -114,9 +114,12 @@ sub prepare_pages
 				$self->{tags} = $self->{session}->config( 'coversheet', 'tags' );
 				foreach my $tag (keys %{$self->{tags}})
 				{
+#$session->log( "[Convert::AddCoversheet] $tag" );
 					eval
         				{
 						my @list = $oodoc->selectElementsByContent( '##'.$tag.'##',  \&{$self->{tags}->{$tag}}, $eprint, $doc,  $oodoc );
+#$session->log( "[Convert::AddCoversheet] @list" );
+#$session->log( "[Convert::AddCoversheet] ". $oodoc->selectElementsByContent( '##'.$tag.'##' ) );
 					};
 
                                         if( $@ )
@@ -130,7 +133,11 @@ sub prepare_pages
 				$oodoc->save();
 				chdir $cwd;
 				#end of search and replace
-
+#$session->log( "[Convert::AddCoversheet] :" );
+#$session->log( $session->config( 'executables', 'python' ) );
+#$session->log( $session->config( 'executables', 'uno_converter' ) );
+#$session->log( "$temp_dir" );
+#$session->log( "[/Convert::AddCoversheet] " );
 				#convert to pdf
 				system(
 						$session->config( 'executables', 'python' ),
@@ -251,7 +258,8 @@ sub export
 	{
 		$gs_cmd .= " '$input_file'";
 	}
-
+# DEBUG
+#$repository->log( "[Convert::AddCoversheet] $gs_cmd \n" );
 	my $sys_call_status = system($gs_cmd);
 	# check it worked
 	if (0 == $sys_call_status)
